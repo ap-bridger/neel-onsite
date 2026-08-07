@@ -3,6 +3,7 @@
 import { apolloClient } from "@/client/graphql/apollo-client";
 import { GreetButton } from "@/components/GreetButton/GreetButton";
 import { ApolloProvider } from "@apollo/client";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -11,6 +12,9 @@ export default function Home() {
         <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
           <h1>Welcome to the Greeter App</h1>
           <GreetButton />
+          <Link href="/transactions" className="underline">
+            View transactions
+          </Link>
         </main>
       </div>
     </ApolloProvider>
