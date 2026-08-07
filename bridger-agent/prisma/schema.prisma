@@ -10,3 +10,24 @@ datasource db {
 model Greet {
   id Int @id @default(autoincrement())
 }
+
+model Client {
+  id       Int       @id @default(autoincrement())
+  name     String
+  vendors  Vendor[]
+  accounts Account[]
+}
+
+model Vendor {
+  id       Int    @id @default(autoincrement())
+  name     String
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id])
+}
+
+model Account {
+  id       Int    @id @default(autoincrement())
+  name     String
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id])
+}
