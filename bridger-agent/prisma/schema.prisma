@@ -12,12 +12,11 @@ model Greet {
 }
 
 model Client {
-  id           Int           @id @default(autoincrement())
-  name         String
-  vendors      Vendor[]
-  accounts     Account[]
-  categories   Category[]
-  transactions Transaction[]
+  id         Int        @id @default(autoincrement())
+  name       String
+  vendors    Vendor[]
+  accounts   Account[]
+  categories Category[]
 }
 
 model Category {
@@ -41,49 +40,56 @@ model Vendor {
 }
 
 model Account {
-  id       Int    @id @default(autoincrement())
-  name     String
-  clientId Int
-  client   Client @relation(fields: [clientId], references: [id])
+  id           Int           @id @default(autoincrement())
+  name         String
+  clientId     Int
+  client       Client        @relation(fields: [clientId], references: [id])
+  transactions Transaction[]
+
+  @@unique([id, clientId])
 }
 
 // status is one of: "needs_review", "reviewed", "pending", "missing_info"
 model Transaction {
   id                    Int                   @id @default(autoincrement())
   clientId              Int
-  client                Client                @relation(fields: [clientId], references: [id])
+  accountId             Int
+  account               Account               @relation(fields: [accountId, clientId], references: [id, clientId])
   date                  DateTime
   totalAmount           Float
-  categories            TransactionCategory[]
+  llmCategories         TransactionCategory[] @relation("TransactionLlmCategory")
+  reviewerCategories    TransactionCategory[] @relation("TransactionReviewerCategory")
   llmVendorId           Int?
   llmVendor             Vendor?               @relation("TransactionLlmVendor", fields: [llmVendorId], references: [id])
   llmNewVendorName      String?
   status                String
   reviewerVendorId      Int?
   reviewerVendor        Vendor?               @relation("TransactionReviewerVendor", fields: [reviewerVendorId], references: [id])
-  updateReason          String
+  updateReason          String?
   reviewerNewVendorName String?
-  missingInfoRequest    String
+  missingInfoRequest    String?
   confidence            Float
 
-  llmPayerTransactionId       Int?
-  llmPayerTransaction         Transaction? @relation("TransactionLlmPayer", fields: [llmPayerTransactionId, clientId], references: [id, clientId])
-  llmPayerForTransaction      Transaction? @relation("TransactionLlmPayer")
-  reviewerPayerTransactionId  Int?
-  reviewerPayerTransaction    Transaction? @relation("TransactionReviewerPayer", fields: [reviewerPayerTransactionId, clientId], references: [id, clientId])
-  reviewerPayerForTransaction Transaction? @relation("TransactionReviewerPayer")
+  llmPairTransactionId       Int?
+  llmPairTransaction         Transaction? @relation("TransactionLlmPair", fields: [llmPairTransactionId, clientId], references: [id, clientId])
+  llmPairForTransaction      Transaction? @relation("TransactionLlmPair")
+  reviewerPairTransactionId  Int?
+  reviewerPairTransaction    Transaction? @relation("TransactionReviewerPair", fields: [reviewerPairTransactionId, clientId], references: [id, clientId])
+  reviewerPairForTransaction Transaction? @relation("TransactionReviewerPair")
 
   @@unique([id, clientId])
-  @@unique([llmPayerTransactionId, clientId])
-  @@unique([reviewerPayerTransactionId, clientId])
+  @@unique([llmPairTransactionId, clientId])
+  @@unique([reviewerPairTransactionId, clientId])
 }
 
 model TransactionCategory {
-  id            Int         @id @default(autoincrement())
-  clientId      Int
-  categoryId    Int
-  category      Category    @relation(fields: [categoryId, clientId], references: [id, clientId])
-  amount        Float
-  transactionId Int
-  transaction   Transaction @relation(fields: [transactionId, clientId], references: [id, clientId], onDelete: Cascade)
+  id                    Int          @id @default(autoincrement())
+  clientId              Int
+  categoryId            Int
+  category              Category     @relation(fields: [categoryId, clientId], references: [id, clientId])
+  amount                Float
+  llmTransactionId      Int?
+  llmTransaction        Transaction? @relation("TransactionLlmCategory", fields: [llmTransactionId, clientId], references: [id, clientId], onDelete: Cascade)
+  reviewerTransactionId Int?
+  reviewerTransaction   Transaction? @relation("TransactionReviewerCategory", fields: [reviewerTransactionId, clientId], references: [id, clientId], onDelete: Cascade)
 }
